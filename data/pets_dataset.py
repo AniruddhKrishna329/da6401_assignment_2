@@ -25,15 +25,13 @@ class OxfordIIITPetDataset(Dataset):
                 class_id=int(parts[1])-1
                 self.samples.append((name,class_id))
 
-        self.breeds=sorted(set(s[1] for s in self.samples))
-
     def __len__(self):
         return len(self.samples)
 
     def __getitem__(self, idx):
         name,class_id=self.samples[idx]
         img=Image.open(os.path.join(self.img_dir,f"{name}.jpg")).convert("RGB")
-        mask=Image.open(os.path.join(self.mask_dir,f"{name}.png"))
+        mask=Image.open(os.path.join(self.mask_dir,f"{name}.png")).resize((224,224),Image.NEAREST)
 
         xml_path=os.path.join(self.xml_dir,f"{name}.xml")
         if os.path.exists(xml_path):
