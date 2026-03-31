@@ -13,7 +13,7 @@ from .multitask import MultiTaskPerceptionModel
 __all__ = [
     "CustomDropout",
     "VGG11Classifier",
-    "VGG11Encoder",
+    "VGG11",
     "VGG11Localizer",
     "VGG11UNet",
     "MultiTaskPerceptionModel",
