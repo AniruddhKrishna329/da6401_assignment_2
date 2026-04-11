@@ -31,6 +31,10 @@ class OxfordIIITPetDataset(Dataset):
     def __getitem__(self, idx):
         name,class_id=self.samples[idx]
         img=Image.open(os.path.join(self.img_dir,f"{name}.jpg")).convert("RGB")
+<<<<<<< HEAD
+=======
+        orig_w,orig_h=img.size
+>>>>>>> 1eca34b8 (final submission)
         mask=Image.open(os.path.join(self.mask_dir,f"{name}.png")).resize((224,224),Image.NEAREST)
 
         xml_path=os.path.join(self.xml_dir,f"{name}.xml")
@@ -43,6 +47,10 @@ class OxfordIIITPetDataset(Dataset):
             ymin=float(bb.find("ymin").text)
             xmax=float(bb.find("xmax").text)
             ymax=float(bb.find("ymax").text)
+            xmin=xmin*224/orig_w
+            ymin=ymin*224/orig_h
+            xmax=xmax*224/orig_w
+            ymax=ymax*224/orig_h
             w=xmax-xmin
             h=ymax-ymin
             bbox=torch.tensor([xmin+w/2,ymin+h/2,w,h],dtype=torch.float32)

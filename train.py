@@ -11,9 +11,10 @@ from models.segmentation import VGG11UNet
 from losses.iou_loss import IoULoss
 
 DEVICE=torch.device("cuda" if torch.cuda.is_available() else "cpu")
-EPOCHS=20
-BATCH_SIZE=32
-LR=1e-3
+print(f"Using device: {DEVICE}")
+EPOCHS=10
+BATCH_SIZE=16
+LR=1e-4
 CHECKPOINT_DIR="checkpoints"
 os.makedirs(CHECKPOINT_DIR,exist_ok=True)
 
@@ -24,7 +25,7 @@ transform=transforms.Compose([
 
 def get_loaders(split="trainval"):
     dataset=OxfordIIITPetDataset(root="data",split=split,transform=transform)
-    return DataLoader(dataset,batch_size=BATCH_SIZE,shuffle=True,num_workers=2)
+    return DataLoader(dataset,batch_size=BATCH_SIZE,shuffle=True,num_workers=0)
 
 def train_classifier():
     wandb.init(project="da6401_assignment_2",name="classifier",reinit=True)
@@ -96,6 +97,6 @@ def train_unet():
     wandb.finish()
 
 if __name__=="__main__":
-    train_classifier()
-    train_localizer()
-    train_unet()
+#    train_classifier()
+     train_localizer()
+    #train_unet()

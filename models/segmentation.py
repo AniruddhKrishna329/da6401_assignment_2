@@ -17,36 +17,36 @@ class VGG11UNet(nn.Module):
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True))
 
-        self.up4=nn.ConvTranspose2d(512,512,2,stride=2)
+        self.up4=nn.ConvTranspose2d(512,256,2,stride=2)
         self.dec4=nn.Sequential(
-            nn.Conv2d(1024,512,3,padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True),
             nn.Conv2d(512,256,3,padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256,256,3,padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True))
 
-        self.up3=nn.ConvTranspose2d(256,256,2,stride=2)
+        self.up3=nn.ConvTranspose2d(256,128,2,stride=2)
         self.dec3=nn.Sequential(
-            nn.Conv2d(512,256,3,padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
             nn.Conv2d(256,128,3,padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128,128,3,padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True))
 
-        self.up2=nn.ConvTranspose2d(128,128,2,stride=2)
+        self.up2=nn.ConvTranspose2d(128,64,2,stride=2)
         self.dec2=nn.Sequential(
-            nn.Conv2d(256,128,3,padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
             nn.Conv2d(128,64,3,padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64,64,3,padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True))
 
-        self.up1=nn.ConvTranspose2d(64,64,2,stride=2)
+        self.up1=nn.ConvTranspose2d(64,32,2,stride=2)
         self.dropout=CustomDropout(dropout_p)
-        self.final=nn.Conv2d(64,num_classes,1)
+        self.final=nn.Conv2d(32,num_classes,1)
 
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         f5,feats=self.encoder(x,return_features=True)
