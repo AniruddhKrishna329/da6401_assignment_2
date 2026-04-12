@@ -3,7 +3,7 @@ import torch.nn as nn
 from models.vgg11 import VGG11
 from models.layers import CustomDropout
 
-class VGG11Localizer(nn.Module):
+class VGG11Localizer(nn.Module): #adds a bounding box around the pet's head. Outputs x_center, y_center, width, height.
     def __init__(self, in_channels:int=3, dropout_p:float=0.5):
         super().__init__()
         self.encoder=VGG11(in_channels)
