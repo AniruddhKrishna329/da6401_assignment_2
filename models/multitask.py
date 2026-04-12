@@ -12,7 +12,7 @@ class MultiTaskPerceptionModel(nn.Module):
         os.makedirs("checkpoints",exist_ok=True)
         gdown.download(id="1Os0BF5mmsVvVvXKWDwk9EGcehD-NZb0z",output=classifier_path,quiet=False)
         gdown.download(id="1auI_b2138aRSqZykSJc7LpsFs1I2uBUR",output=localizer_path,quiet=False)
-        gdown.download(id="1knJn6EtdL3NNNhdTSDQpVPrvhWlbJTqf",output=unet_path,quiet=False)
+        gdown.download(id="176EnEV15mDPSS9QNAVEp96NMbgHo5LAU",output=unet_path,quiet=False)
 
         classifier=VGG11Classifier(num_breeds,in_channels)
         classifier.load_state_dict(torch.load(classifier_path,map_location="cpu",weights_only=False))
