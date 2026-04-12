@@ -16,9 +16,11 @@ class VGG11Localizer(nn.Module):
             nn.Linear(4096,4096),
             nn.ReLU(inplace=True),
             CustomDropout(dropout_p),
-            nn.Linear(4096,4),
-            nn.ReLU())
+            nn.Linear(4096,4))
 
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         x=self.encoder(x)
-        return self.head(x)
+        out=self.head(x)
+        # scale to image space: cx,cy in [0,224], w,h in [0,224]
+        out=torch.sigmoid(out)*224
+        return out
