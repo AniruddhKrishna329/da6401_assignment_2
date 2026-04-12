@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import gdown
+import os
 from models.classification import VGG11Classifier
 from models.localization import VGG11Localizer
 from models.segmentation import VGG11UNet
@@ -7,6 +9,11 @@ from models.segmentation import VGG11UNet
 class MultiTaskPerceptionModel(nn.Module):
     def __init__(self, num_breeds:int=37, seg_classes:int=3, in_channels:int=3, classifier_path:str="checkpoints/classifier.pth", localizer_path:str="checkpoints/localizer.pth", unet_path:str="checkpoints/unet.pth"):
         super().__init__()
+        os.makedirs("checkpoints",exist_ok=True)
+        gdown.download(id="1eRXJ__rK-ldwwchPBb_fnUHEQ4BxGJg_",output=classifier_path,quiet=False)
+        gdown.download(id="1gKfSkc80FF5Sq-orPm5qfKyMsRRIpBun",output=localizer_path,quiet=False)
+        gdown.download(id="1uU36FDHcu5giNPHR5je53fe5PnkbqZps",output=unet_path,quiet=False)
+
         classifier=VGG11Classifier(num_breeds,in_channels)
         classifier.load_state_dict(torch.load(classifier_path,map_location="cpu"))
 
@@ -28,10 +35,8 @@ class MultiTaskPerceptionModel(nn.Module):
 
     def forward(self, x:torch.Tensor):
         f5,feats=self.backbone(x,return_features=True)
-
         cls=self.cls_head(f5)
         loc=self.loc_head(f5)
-
         s=self.seg_decoder["up5"](f5)
         s=self.seg_decoder["dec5"](torch.cat([s,feats["f4"]],dim=1))
         s=self.seg_decoder["up4"](s)
@@ -43,5 +48,4 @@ class MultiTaskPerceptionModel(nn.Module):
         s=self.seg_decoder["up1"](s)
         s=self.seg_decoder["dropout"](s)
         s=self.seg_decoder["final"](s)
-
         return {"classification":cls,"localization":loc,"segmentation":s}
