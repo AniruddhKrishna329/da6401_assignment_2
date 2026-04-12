@@ -77,12 +77,20 @@ def train_localizer():
     wandb.finish()
 
 def train_unet():
-    wandb.init(project="da6401_assignment_2",name="unet",reinit=True)
+    wandb.init(project="da6401_assignment_2",name="unet_v3",reinit=True)
     loader=get_loaders()
     model=VGG11UNet().to(DEVICE)
-    opt=torch.optim.Adam(model.parameters(),lr=LR)
+
+    # load pretrained backbone from classifier
+    state=torch.load(os.path.join(CHECKPOINT_DIR,"classifier.pth"),map_location=DEVICE,weights_only=False)
+    encoder_state={k.replace("encoder.",""):v for k,v in state.items() if k.startswith("encoder.")}
+    model.encoder.load_state_dict(encoder_state,strict=False)
+
+    opt=torch.optim.Adam(model.parameters(),lr=1e-4)
+    scheduler=torch.optim.lr_scheduler.StepLR(opt,step_size=10,gamma=0.5)
     criterion=nn.CrossEntropyLoss()
-    for epoch in range(EPOCHS):
+
+    for epoch in range(30):
         model.train()
         total_loss=0
         for img,_,_,mask in loader:
@@ -93,8 +101,10 @@ def train_unet():
             loss.backward()
             opt.step()
             total_loss+=loss.item()
+        scheduler.step()
         wandb.log({"seg/loss":total_loss/len(loader)},step=epoch+1)
         print(f"Epoch {epoch+1} seg loss:{total_loss/len(loader):.4f}")
+
     torch.save(model.state_dict(),os.path.join(CHECKPOINT_DIR,"unet.pth"))
     wandb.finish()
 
