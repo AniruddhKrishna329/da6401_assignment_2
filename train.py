@@ -23,11 +23,11 @@ transform=transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485,0.456,0.406],std=[0.229,0.224,0.225])])
 
-def get_loaders(split="trainval"):
+def get_loaders(split="trainval"): #gets the data here
     dataset=OxfordIIITPetDataset(root="data",split=split,transform=transform)
     return DataLoader(dataset,batch_size=BATCH_SIZE,shuffle=True,num_workers=0)
 
-def train_classifier():
+def train_classifier(): #actual train loop for classifier
     wandb.init(project="da6401_assignment_2",name="classifier",reinit=True)
     loader=get_loaders()
     model=VGG11Classifier().to(DEVICE)
@@ -51,7 +51,7 @@ def train_classifier():
     torch.save(model.state_dict(),os.path.join(CHECKPOINT_DIR,"classifier.pth"))
     wandb.finish()
 
-def train_localizer():
+def train_localizer(): #train loop for localizer
     wandb.init(project="da6401_assignment_2",name="localizer_v5",reinit=True)
     loader=get_loaders()
     model=VGG11Localizer().to(DEVICE)
@@ -76,20 +76,16 @@ def train_localizer():
     torch.save(model.state_dict(),os.path.join(CHECKPOINT_DIR,"localizer.pth"))
     wandb.finish()
 
-def train_unet():
+def train_unet(): #train loop for u-net
     wandb.init(project="da6401_assignment_2",name="unet_v3",reinit=True)
     loader=get_loaders()
     model=VGG11UNet().to(DEVICE)
-
-    # load pretrained backbone from classifier
     state=torch.load(os.path.join(CHECKPOINT_DIR,"classifier.pth"),map_location=DEVICE,weights_only=False)
     encoder_state={k.replace("encoder.",""):v for k,v in state.items() if k.startswith("encoder.")}
     model.encoder.load_state_dict(encoder_state,strict=False)
-
     opt=torch.optim.Adam(model.parameters(),lr=1e-4)
     scheduler=torch.optim.lr_scheduler.StepLR(opt,step_size=10,gamma=0.5)
     criterion=nn.CrossEntropyLoss()
-
     for epoch in range(30):
         model.train()
         total_loss=0
@@ -104,7 +100,6 @@ def train_unet():
         scheduler.step()
         wandb.log({"seg/loss":total_loss/len(loader)},step=epoch+1)
         print(f"Epoch {epoch+1} seg loss:{total_loss/len(loader):.4f}")
-
     torch.save(model.state_dict(),os.path.join(CHECKPOINT_DIR,"unet.pth"))
     wandb.finish()
 
