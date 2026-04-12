@@ -3,7 +3,7 @@
 
 import torch
 import torch.nn as nn
-class CustomDropout(nn.Module):
+class CustomDropout(nn.Module): #implements the dropout function that randomly zeroes out neurons with probability p.
     def __init__(self, p: float = 0.5):
         super().__init__()
         assert 0<=p<=1
