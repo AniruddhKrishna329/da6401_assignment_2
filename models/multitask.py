@@ -15,17 +15,18 @@ class MultiTaskPerceptionModel(nn.Module):
         gdown.download(id="1Rtm4jLgVK3C3kzC32Zv4xeEKUSdop5lq",output=unet_path,quiet=False)
 
         classifier=VGG11Classifier(num_breeds,in_channels)
-        classifier.load_state_dict(torch.load(classifier_path,map_location="cpu"))
+        classifier.load_state_dict(torch.load(classifier_path,map_location="cpu",weights_only=False))
 
         localizer=VGG11Localizer(in_channels)
-        localizer.load_state_dict(torch.load(localizer_path,map_location="cpu"))
+        localizer.load_state_dict(torch.load(localizer_path,map_location="cpu",weights_only=False))
 
         unet=VGG11UNet(seg_classes,in_channels)
-        unet.load_state_dict(torch.load(unet_path,map_location="cpu"))
+        unet.load_state_dict(torch.load(unet_path,map_location="cpu",weights_only=False))
 
         self.backbone=classifier.encoder
         self.cls_head=classifier.head
-        self.loc_head=localizer.head
+        self.loc_backbone_head=localizer.backbone_head
+        self.loc_bbox_head=localizer.bbox_head
         self.seg_decoder=nn.ModuleDict({
             "up5":unet.up5,"dec5":unet.dec5,
             "up4":unet.up4,"dec4":unet.dec4,
@@ -35,8 +36,10 @@ class MultiTaskPerceptionModel(nn.Module):
 
     def forward(self, x:torch.Tensor):
         f5,feats=self.backbone(x,return_features=True)
+
         cls=self.cls_head(f5)
-        loc=self.loc_head(f5)
+        loc=torch.sigmoid(self.loc_bbox_head(self.loc_backbone_head(f5)))*224.0
+
         s=self.seg_decoder["up5"](f5)
         s=self.seg_decoder["dec5"](torch.cat([s,feats["f4"]],dim=1))
         s=self.seg_decoder["up4"](s)
@@ -48,4 +51,5 @@ class MultiTaskPerceptionModel(nn.Module):
         s=self.seg_decoder["up1"](s)
         s=self.seg_decoder["dropout"](s)
         s=self.seg_decoder["final"](s)
+
         return {"classification":cls,"localization":loc,"segmentation":s}
