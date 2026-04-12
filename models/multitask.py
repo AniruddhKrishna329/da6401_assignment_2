@@ -6,23 +6,19 @@ from models.classification import VGG11Classifier
 from models.localization import VGG11Localizer
 from models.segmentation import VGG11UNet
 
-class MultiTaskPerceptionModel(nn.Module):
+class MultiTaskPerceptionModel(nn.Module): #main code that accepts all three models and makes them work simultaneously, providing us all we need.
     def __init__(self, num_breeds:int=37, seg_classes:int=3, in_channels:int=3, classifier_path:str="checkpoints/classifier.pth", localizer_path:str="checkpoints/localizer.pth", unet_path:str="checkpoints/unet.pth"):
         super().__init__()
         os.makedirs("checkpoints",exist_ok=True)
         gdown.download(id="1Os0BF5mmsVvVvXKWDwk9EGcehD-NZb0z",output=classifier_path,quiet=False)
         gdown.download(id="1aSdMV8RzRKtmjYO1g8w7r8jFYt2QTjSO",output=localizer_path,quiet=False)
         gdown.download(id="176EnEV15mDPSS9QNAVEp96NMbgHo5LAU",output=unet_path,quiet=False)
-
         classifier=VGG11Classifier(num_breeds,in_channels)
         classifier.load_state_dict(torch.load(classifier_path,map_location="cpu",weights_only=False))
-
         localizer=VGG11Localizer(in_channels)
         localizer.load_state_dict(torch.load(localizer_path,map_location="cpu",weights_only=False))
-
         unet=VGG11UNet(seg_classes,in_channels)
         unet.load_state_dict(torch.load(unet_path,map_location="cpu",weights_only=False))
-
         self.backbone=classifier.encoder
         self.cls_head=classifier.head
         self.loc_backbone_head=localizer.backbone_head
@@ -35,12 +31,10 @@ class MultiTaskPerceptionModel(nn.Module):
             "up1":unet.up1,"dec1":unet.dec1,
             "dropout":unet.dropout,"final":unet.final})
 
-    def forward(self, x:torch.Tensor):
+    def forward(self, x:torch.Tensor): #forward pass
         f5,feats=self.backbone(x,return_features=True)
-
         cls=self.cls_head(f5)
         loc=torch.sigmoid(self.loc_bbox_head(self.loc_backbone_head(f5)))*224.0
-
         s=self.seg_decoder["up5"](f5)
         s=self.seg_decoder["dec5"](torch.cat([s,feats["f4"]],dim=1))
         s=self.seg_decoder["up4"](s)
@@ -53,11 +47,8 @@ class MultiTaskPerceptionModel(nn.Module):
         s=self.seg_decoder["dec1"](s)
         s=self.seg_decoder["dropout"](s)
         s=self.seg_decoder["final"](s)
-
         return {"classification":cls,"localization":loc,"segmentation":s}
         s=self.seg_decoder["final"](s)
-
         return {"classification":cls,"localization":loc,"segmentation":s}
         s=self.seg_decoder["final"](s)
-
         return {"classification":cls,"localization":loc,"segmentation":s}
