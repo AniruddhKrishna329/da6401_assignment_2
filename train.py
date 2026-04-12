@@ -52,14 +52,14 @@ def train_classifier():
     wandb.finish()
 
 def train_localizer():
-    wandb.init(project="da6401_assignment_2",name="localizer_v3",reinit=True)
+    wandb.init(project="da6401_assignment_2",name="localizer_v5",reinit=True)
     loader=get_loaders()
     model=VGG11Localizer().to(DEVICE)
-    opt=torch.optim.Adam(model.parameters(),lr=1e-4)
-    scheduler=torch.optim.lr_scheduler.StepLR(opt,step_size=10,gamma=0.5)
+    opt=torch.optim.Adam(model.parameters(),lr=5e-5)
+    scheduler=torch.optim.lr_scheduler.StepLR(opt,step_size=15,gamma=0.5)
     mse=nn.MSELoss()
     iou=IoULoss()
-    for epoch in range(30):
+    for epoch in range(50):
         model.train()
         total_loss=0
         for img,_,bbox,_ in loader:
