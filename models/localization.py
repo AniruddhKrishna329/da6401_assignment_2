@@ -12,13 +12,13 @@ class VGG11Localizer(nn.Module): #adds a bounding box around the pet's head. Out
             nn.Flatten(),
             nn.Linear(512*7*7,4096),
             nn.ReLU(inplace=True),
-            CustomDropout(dropout_p),
+            CustomDropout(dropout_p), #dropout layer with p=0.5
             nn.Linear(4096,4096),
             nn.ReLU(inplace=True),
             CustomDropout(dropout_p))
         self.bbox_head=nn.Linear(4096,4)
 
-    def forward(self, x:torch.Tensor) -> torch.Tensor:
+    def forward(self, x:torch.Tensor) -> torch.Tensor: #forward pass
         x=self.encoder(x)
         x=self.backbone_head(x)
         return torch.sigmoid(self.bbox_head(x))*224.0
