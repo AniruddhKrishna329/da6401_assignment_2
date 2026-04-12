@@ -12,7 +12,7 @@ from losses.iou_loss import IoULoss
 
 DEVICE=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {DEVICE}")
-EPOCHS=10
+EPOCHS=30
 BATCH_SIZE=16
 LR=1e-4
 CHECKPOINT_DIR="checkpoints"
