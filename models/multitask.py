@@ -32,7 +32,8 @@ class MultiTaskPerceptionModel(nn.Module):
             "up4":unet.up4,"dec4":unet.dec4,
             "up3":unet.up3,"dec3":unet.dec3,
             "up2":unet.up2,"dec2":unet.dec2,
-            "up1":unet.up1,"dropout":unet.dropout,"final":unet.final})
+            "up1":unet.up1,"dec1":unet.dec1,
+            "dropout":unet.dropout,"final":unet.final})
 
     def forward(self, x:torch.Tensor):
         f5,feats=self.backbone(x,return_features=True)
@@ -49,7 +50,14 @@ class MultiTaskPerceptionModel(nn.Module):
         s=self.seg_decoder["up2"](s)
         s=self.seg_decoder["dec2"](torch.cat([s,feats["f1"]],dim=1))
         s=self.seg_decoder["up1"](s)
+        s=self.seg_decoder["dec1"](s)
         s=self.seg_decoder["dropout"](s)
+        s=self.seg_decoder["final"](s)
+
+        return {"classification":cls,"localization":loc,"segmentation":s}
+        s=self.seg_decoder["final"](s)
+
+        return {"classification":cls,"localization":loc,"segmentation":s}
         s=self.seg_decoder["final"](s)
 
         return {"classification":cls,"localization":loc,"segmentation":s}
